@@ -1,0 +1,3 @@
+PANDAS
+MYSQL.CONNECTOR
+Python 3.9.7 (tags/v3.9.7:1016ef3)
