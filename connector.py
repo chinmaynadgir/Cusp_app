@@ -5,33 +5,42 @@ import pandas as pd
 import re
 import os
 import warnings
+import configparser
+config = configparser.ConfigParser()
 
 warnings.filterwarnings("ignore")
 
 print("Step 1: Attempting SQL Connection")
+config.read('config.ini')
+host_c=config.get('sql','host')
+user_c=config.get('sql','user')
+password_c=config.get('sql','password')
+database_c=config.get('sql','database')
 
 mydb = mysql.connector.connect(
-  host="localhost",
-  user="root",
-  password="1024",
-  database="cuspera"
-)
+host=host_c,
+user=user_c,
+password=password_c,
+database=database_c)
 if(mydb):
     print("SQL Connection Succesfull")
 
 
-print("Step 2: Recieving date range ")
+print("Step 2: Recieving date range and customerid")
 begin=input("Enter beggining date in the form of YYYY-MM-DD ").strip()
 begin+=' 00::00::00"'
 
 end=input("Enter ending date in the form of YYYY-MM-DD ").strip()
 end+=' 00::00::00"'
 
-query="SELECT cf.date as DATE, su.first_name as NAME , su.company_name as COMPANY,sr.report_id as REPORT,ac.region as STATE,ac.country as COUNTRY ,sr.url as REFERENCE_URL,co.source as CAMPAIGN ,cf.gats  FROM shareable_users as su,contact_fact as cf,content_fact as co,shareable_reports as sr,account as ac where cf.lead_id=su.id and su.id=sr.shareable_user_id and su.company_name=ac.name and sr.url=co.page"
+cust_id=input("Enter customer id").strip()
+
+query="SELECT cf.date as DATE,mc.name as CUSTOMER, su.first_name as NAME , su.company_name as COMPANY,sr.report_id as REPORT,ac.region as STATE,ac.country as COUNTRY ,sr.url as REFERENCE_URL,co.source as CAMPAIGN ,cf.gats  FROM master_customers as mc,shareable_users as su,contact_fact as cf,content_fact as co,shareable_reports as sr,account as ac where cf.customer_id=mc.customer_id and cf.lead_id=su.id and su.id=sr.shareable_user_id and su.company_name=ac.name and sr.url=co.page"
 
 print("Date values accepted are "+begin+' to '+end)
 
-query=query+' and cf.date between '+'"'+begin+' and '+'"' +end+';'
+query=query+' and cf.date between '+'"'+begin+' and '+'"' +end
+query=query+' and cf.customer_id ='+cust_id+';'
 
 
 
