@@ -1,0 +1,20 @@
+PANDAS
+MYSQL.CONNECTOR
+Python 3.9.7 (tags/v3.9.7:1016ef3)
+
+
+TO RUN USE PY api.py
+use the url shown in the flask 
+For ex:
+http://192.168.0.119:50100/search?start=2022-05-03&end=2022-05-29&tf=1&cid=1
+
+here the parameters are 
+start : start date
+end : end date 
+tf is time frame : 
+	if tf is 0:leads report is generated
+	if tf is 1:aggregate by weekly data
+	if tf is 2:aggregate by monthly data
+
+if cid is the customer id from (0-12):
+	if cid is 0: select all the customers.

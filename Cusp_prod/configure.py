@@ -1,4 +1,6 @@
 import configparser
+
+#This is a script where you can just vary the parameters and the configuration file automatically gets built
 config = configparser.ConfigParser()
 config['sql'] = {}
 config['sql']['Host'] = 'localhost'
