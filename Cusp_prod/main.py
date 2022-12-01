@@ -1,3 +1,4 @@
+#importing all the necessary libraries
 from operator import index
 from re import M
 import mysql.connector
@@ -9,9 +10,12 @@ import configparser
 import sys
 config = configparser.ConfigParser()
 
+#ignore all warnings
 warnings.filterwarnings("ignore")
 
+#the main leads function which takes date range and choice,customer id 
 def leads_rep(begin,end,choice,cust_id):
+    #get all the parameters from the ini file
     print("Step 1: Attempting SQL Connection")
     config.read('config.ini')
     host_c=config.get('sql','host')
@@ -42,7 +46,7 @@ def leads_rep(begin,end,choice,cust_id):
         print("wrong")
         sys.exit(0)
     #cust_id=input("Enter customer id : ").strip()
-
+    #genereates the leads report
     if(choice=="0"):
         query="SELECT cf.date as DATE,mc.name as CUSTOMER, su.first_name as NAME , su.company_name as COMPANY,sr.report_id as REPORT,ac.region as STATE,ac.country as COUNTRY ,sr.url as REFERENCE_URL,co.source as CAMPAIGN ,cf.gats  FROM master_customers as mc,shareable_users as su,contact_fact as cf,content_fact as co,shareable_reports as sr,account as ac where cf.customer_id=mc.customer_id and cf.lead_id=su.id and su.id=sr.shareable_user_id and su.company_name=ac.name and sr.url=co.page"
         begin+=' 00::00::00"'
@@ -146,15 +150,15 @@ def leads_rep(begin,end,choice,cust_id):
         print("Done ...")
             
         result_df.drop(['gats'],axis=1,inplace=True)
+    #GROUP BY WEEK
     elif(choice=="1"):
         begin+=' 00::00::00'
         end+=' 00::00::00'
         query='SELECT customer_id,FROM_DAYS(TO_DAYS(account_fact.date) -MOD(TO_DAYS(account_fact.date) -2, 7)) AS week_beginning,SUM(visitors) AS total_visitors,SUM(events) as total_events,SUM(impressions) as total_impressions,SUM(leads) as total_leads,SUM(time_spent) as total_time_spent FROM cuspera.account_fact WHERE date between "'+begin+'" and "'+end+'"'
         if(cust_id!=0):
-            print("inside test loop")
             query=query+ 'and customer_id='+cust_id 
         query=query+' GROUP BY FROM_DAYS(TO_DAYS(account_fact.date) -MOD(TO_DAYS(account_fact.date) -2, 7)),customer_id order by date;'
-
+    #GROUP BY MONTH
     elif(choice=="2"):
         begin+=' 00::00::00'
         end+=' 00::00::00'
@@ -163,7 +167,6 @@ def leads_rep(begin,end,choice,cust_id):
             query=query+'and customer_id='+cust_id 
         query=query+' GROUP BY DATE(DATE_FORMAT(account_fact.date, "%Y-%m-01")),customer_id order by date;'
     print("Step 3: Processing initial Query")
-    print(query)
     result_df=pd.read_sql(query,mydb)
 
     def time_string(row):
