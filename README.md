@@ -1,5 +1,7 @@
 # Cusp_app
-
+<hr width =80%>
+![image](https://user-images.githubusercontent.com/69594137/206257839-6eb457d6-f7a7-44cf-8fae-11c3c144897f.png)
+<hr width =80%>
 #REQUIREMENTS<hr width=50%>
 PANDAS<br>
 MYSQL.CONNECTOR<br>
