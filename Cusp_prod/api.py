@@ -3,12 +3,16 @@ from main import leads_rep
 from main import DateFormat
 from main import BadDate
 from main import BadOption
+from main import NoData
 import os,time
 import re
 
 app = Flask(__name__)
 
 #recieving input parameters
+@app.route('/')
+def welcome():
+    return "<h1 style='font-family:fantasy;font-size:500%'><center>CUSP APP - API END</h1><hr width=80%><br><h3 style='font-family:fantasy;font-size:250%'><center>Enter Parameters By URL</h3></center><h4 style='font-family:fantasy;font-size:100%'><center> In the format :/search?start=yyyy-mm-dd&end=yyyy-mm-dd&tf=d/w/m&cid=(0-10)</h4>"
 @app.route('/search')
 def search():
     if os.path.exists('temp.csv'):
@@ -42,6 +46,8 @@ def search():
         return "Enter Start Date before End Date"
     except BadOption:
         return "Make sure time frame is 0/D/W/M"
+    except NoData:
+        return "There are No Records to be returned !" 
 
 
     while(os.path.exists('temp.csv')):
