@@ -9,6 +9,24 @@ import warnings
 import configparser
 import sys
 config = configparser.ConfigParser()
+# define Python user-defined exceptions
+class Error(Exception):
+    """Base class for other exceptions"""
+    pass
+
+
+class DateFormat(Error):
+    """Raised when the input date is not in YYYY-MM-DD / YYYY-M-D Format"""
+    pass
+
+
+class BadDate(Error):
+    """Raised when the start date is larger than the end date"""
+    pass
+
+class BadOption(Error):
+    """Raised when the option is not D / W / M / Y"""
+    pass
 
 #ignore all warnings
 warnings.filterwarnings("ignore")
@@ -16,6 +34,24 @@ warnings.filterwarnings("ignore")
 #the main leads function which takes date range and choice,customer id 
 def leads_rep(begin,end,choice,cust_id):
     #get all the parameters from the ini file
+    def validate_date(x):
+        re_date=re.compile(r"^\d{4}\-(0?[1-9]|1[012])\-(0?[1-9]|[12][0-9]|3[01])$",re.M|re.I)
+        if(re.match(re_date,x)):
+            print("Date Accepted")
+        else :
+            raise DateFormat
+    def GoodDate(s,e):
+        format = '%Y-%m-%d'
+        begin_obj = datetime.datetime.strptime(s, format)
+        end_obj= datetime.datetime.strptime(e, format)
+        if(end_obj<begin_obj):
+            raise BadDate
+    
+    validate_date(begin)
+    validate_date(end)
+    GoodDate(begin,end)
+
+    
     print("Step 1: Attempting SQL Connection")
     config.read('config.ini')
     host_c=config.get('sql','host')
@@ -42,9 +78,9 @@ def leads_rep(begin,end,choice,cust_id):
     #choice=input("Enter data to be aggregated:\t0.None\t1.Weekly\t2.Monthly : ").strip()
     choice.strip()
     print(choice)
-    if(choice not in ["0","1","2"]):
-        print("wrong")
-        sys.exit(0)
+    if(choice not in ["0","d","m","w"]):
+        print("wrong choice")
+        raise BadOption
     #cust_id=input("Enter customer id : ").strip()
     #genereates the leads report
     if(choice=="0"):
@@ -150,20 +186,29 @@ def leads_rep(begin,end,choice,cust_id):
         print("Done ...")
             
         result_df.drop(['gats'],axis=1,inplace=True)
-    #GROUP BY WEEK
-    elif(choice=="1"):
-        begin+=' 00::00::00'
-        end+=' 00::00::00'
-        query='SELECT customer_id,FROM_DAYS(TO_DAYS(account_fact.date) -MOD(TO_DAYS(account_fact.date) -2, 7)) AS week_beginning,SUM(visitors) AS total_visitors,SUM(events) as total_events,SUM(impressions) as total_impressions,SUM(leads) as total_leads,SUM(time_spent) as total_time_spent FROM cuspera.account_fact WHERE date between "'+begin+'" and "'+end+'"'
-        if(cust_id!=0):
-            query=query+ 'and customer_id='+cust_id 
-        query=query+' GROUP BY FROM_DAYS(TO_DAYS(account_fact.date) -MOD(TO_DAYS(account_fact.date) -2, 7)),customer_id order by date;'
-    #GROUP BY MONTH
-    elif(choice=="2"):
+    #GROUP BY DAILY
+    elif(choice=="d"):
         begin+=' 00::00::00'
         end+=' 00::00::00'
         query='SELECT customer_id,DATE(DATE_FORMAT(account_fact.date, "%Y-%m-01")) AS month_beginning,SUM(visitors) AS total_visitors,SUM(events) as total_events,SUM(impressions) as total_impressions,SUM(leads) as total_leads,SUM(time_spent) as total_time_spent FROM cuspera.account_fact where date between "'+begin+'" and "'+end+'"'
-        if(cust_id!=0):
+        if(cust_id!='0'):
+            query=query+'and customer_id='+cust_id 
+        query=query+' GROUP BY DATE(DATE_FORMAT(account_fact.date, "%Y-%m-%d")),customer_id order by date;'
+
+    #GROUP BY WEEK
+    elif(choice=="w"):
+        begin+=' 00::00::00'
+        end+=' 00::00::00'
+        query='SELECT customer_id,FROM_DAYS(TO_DAYS(account_fact.date) -MOD(TO_DAYS(account_fact.date) -2, 7)) AS week_beginning,SUM(visitors) AS total_visitors,SUM(events) as total_events,SUM(impressions) as total_impressions,SUM(leads) as total_leads,SUM(time_spent) as total_time_spent FROM cuspera.account_fact WHERE date between "'+begin+'" and "'+end+'"'
+        if(cust_id!='0'):
+            query=query+ 'and customer_id='+cust_id 
+        query=query+' GROUP BY FROM_DAYS(TO_DAYS(account_fact.date) -MOD(TO_DAYS(account_fact.date) -2, 7)),customer_id order by date;'
+    #GROUP BY MONTH
+    elif(choice=="m"):
+        begin+=' 00::00::00'
+        end+=' 00::00::00'
+        query='SELECT customer_id,DATE(DATE_FORMAT(account_fact.date, "%Y-%m-01")) AS month_beginning,SUM(visitors) AS total_visitors,SUM(events) as total_events,SUM(impressions) as total_impressions,SUM(leads) as total_leads,SUM(time_spent) as total_time_spent FROM cuspera.account_fact where date between "'+begin+'" and "'+end+'"'
+        if(cust_id!='0'):
             query=query+'and customer_id='+cust_id 
         query=query+' GROUP BY DATE(DATE_FORMAT(account_fact.date, "%Y-%m-01")),customer_id order by date;'
     print("Step 3: Processing initial Query")
