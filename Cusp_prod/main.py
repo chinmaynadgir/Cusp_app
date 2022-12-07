@@ -28,6 +28,9 @@ class BadOption(Error):
     """Raised when the option is not D / W / M / Y"""
     pass
 
+class NoData(Error):
+    """Raised when the option is not D / W / M / Y"""
+    pass
 #ignore all warnings
 warnings.filterwarnings("ignore")
 
@@ -218,11 +221,14 @@ def leads_rep(begin,end,choice,cust_id):
         secs=row['total_time_spent']
         return str(datetime.timedelta(seconds=secs))
 
+    if(len(result_df)==0):
+        raise NoData
+
     if(choice!="0"):
         result_df['total_time_spent']=result_df.apply(time_string,axis=1)
 
 
-
+    
     #file_path=input("Enter name of your file without extensions ")
     file_path='temp'
     file_path+='.csv'
