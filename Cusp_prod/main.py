@@ -7,7 +7,7 @@ import re
 import datetime
 import warnings
 import configparser
-import sys
+
 config = configparser.ConfigParser()
 # define Python user-defined exceptions
 class Error(Exception):
@@ -33,6 +33,8 @@ class NoData(Error):
     pass
 #ignore all warnings
 warnings.filterwarnings("ignore")
+
+
 
 #the main leads function which takes date range and choice,customer id 
 def leads_rep(begin,end,choice,cust_id):
@@ -80,7 +82,6 @@ def leads_rep(begin,end,choice,cust_id):
 
     #choice=input("Enter data to be aggregated:\t0.None\t1.Weekly\t2.Monthly : ").strip()
     choice.strip()
-    print(choice)
     if(choice not in ["0","d","m","w"]):
         print("wrong choice")
         raise BadOption
@@ -236,8 +237,28 @@ def leads_rep(begin,end,choice,cust_id):
     result_df.to_csv(file_path,index=0)
     print("Succesfully saved at "+file_path)
 
-
 #leads_rep('2022-05-03','2022-05-29','1','1')
+
+def leads_main(begin,end,choice,cust_id):
+    try:
+        leads_rep(begin,end,choice,cust_id)
+        success_csv={"code":200,"description": "Successfully Sent CSV file", "name": "Success"}   
+        return success_csv
+    except DateFormat:
+        error_df={"code": 555, "description": "Please enter date in valid format YYYY-MM-DD or YYYY-M-D. If you entered the URL manually please check your spelling and try again.", "name": "DateFormat"}
+        return error_df
+    except BadDate:
+        error_bd={"code": 555, "description": "Please enter start date smaller than the end date . If you entered the URL manually please check your spelling and try again.", "name": "BadDate"}
+        return error_bd
+
+    except BadOption:
+        error_bo={"code": 555, "description": "Please enter the timeframe as 0/d/w/m. If you entered the URL manually please check your spelling and try again.", "name": "BadOption"}
+        return error_bo
+
+    except NoData:
+        error_nd={"code": 555, "description": "There are no records to be entered for the given information. Please enter different attributes and try again.", "name": "NoData"}
+        return error_nd
+
 
 
 
