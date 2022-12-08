@@ -1,13 +1,28 @@
-from flask import Flask, request,send_file
+from flask import Flask, request,send_file,json
 from main import leads_rep
 from main import DateFormat
 from main import BadDate
 from main import BadOption
 from main import NoData
+from werkzeug.exceptions import HTTPException
 import os,time
-import re
 
 app = Flask(__name__)
+
+#errorjsontrial
+@app.errorhandler(HTTPException)
+def handle_exception(e):
+    """Return JSON instead of HTML for HTTP errors."""
+    # start with the correct headers and status code from the error
+    response = e.get_response()
+    # replace the body with JSON
+    response.data = json.dumps({
+        "code": e.code,
+        "name": e.name,
+        "description": e.description,
+    })
+    response.content_type = "application/json"
+    return response
 
 #recieving input parameters
 @app.route('/')
@@ -41,13 +56,17 @@ def search():
         else:
             leads_rep(start,end,tf,cid)
     except DateFormat:
-        return "Please enter date in valid format YYYY-MM-DD or YYYY-M-D"
+        error_df=json.dumps({"code": 555, "description": "Please enter date in valid format YYYY-MM-DD or YYYY-M-D. If you entered the URL manually please check your spelling and try again.", "name": "DateFormat"})
+        return error_df
     except BadDate:
-        return "Enter Start Date before End Date"
+        error_bd=json.dumps({"code": 555, "description": "Please enter start date smaller than the end date . If you entered the URL manually please check your spelling and try again.", "name": "BadDate"})
+        return error_bd
     except BadOption:
-        return "Make sure time frame is 0/D/W/M"
+        error_bo=json.dumps({"code": 555, "description": "Please enter the timeframe as 0/d/w/m. If you entered the URL manually please check your spelling and try again.", "name": "BadOption"})
+        return error_bo
     except NoData:
-        return "There are No Records to be returned !" 
+        error_nd=json.dumps({"code": 555, "description": "There are no records to be entered for the given information. Please enter different attributes and try again.", "name": "NoData"})
+        return error_nd
 
 
     while(os.path.exists('temp.csv')):
