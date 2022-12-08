@@ -1,0 +1,10 @@
+start,end,tf,cid,desc
+202-05-23,222-05-21,w,1,Date not in YYYY-MM-DD
+2022-05-23,2022-05-21,w,1,End Date is After start
+2022-05-23,2022-06-26,d,0,Date follows format but is a bad date (day is 41)
+2022-05-23,2022-05-23,w,7,No Records exist on the given date
+2022-05-23,2022-05-26,x,1,X is not a valid time frame
+2022-05-23,2022-05-26,d,1,success
+2022-05-23,2022-06-26,d,0,success
+
+
